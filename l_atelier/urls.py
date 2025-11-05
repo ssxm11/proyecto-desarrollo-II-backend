@@ -1,8 +1,8 @@
 """
-URL configuration for l_atelier project.
+URL configuration for ddsi project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+    https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -16,23 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
-from l_atelier.views import (
-    UserViewSet,
-    RegisterView,
-    CustomTokenObtainPairView,
-    MeView,
-)
-
-router = DefaultRouter()
-router.register(r'users', UserViewSet, basename='user')
+from django.conf import settings
+from django.conf.urls.static import static
+from apps.user import urls as user_urls
+from django.shortcuts import redirect
 
 urlpatterns = [
+    # path('', lambda request: redirect('/admin/')),
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
-    path('api/auth/register/', RegisterView.as_view(), name='register'),
-    path('api/auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/auth/me/', MeView.as_view(), name='me'),
+    path('api/', include(('apps.user.urls', 'user'), namespace='user')),
+    path('api/', include(('apps.product.urls', 'product'), namespace='product')),
+
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

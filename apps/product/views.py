@@ -1,0 +1,28 @@
+from rest_framework import viewsets, permissions, filters
+from .models import Product
+from .serializer import ProductSerializer
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """
+    CRUD para Productos.
+    - Lectura pública (solo activos para usuarios anónimos).
+    - Escritura solo para usuarios autenticados.
+    """
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'code', 'description']
+    ordering_fields = ['created_at', 'price', 'name']
+    lookup_field = 'slug'  # usar slug en URLs si lo deseas
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # usuarios no autenticados ven solo productos activos
+        if not self.request.user or not self.request.user.is_authenticated:
+            qs = qs.filter(is_active=True)
+        return qs
+
+    def perform_create(self, serializer):
+        # si quieres asignar creador u otros datos: serializer.save(owner=self.request.user)
+        serializer.save()
