@@ -33,7 +33,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         # solo staff o creador pueden actualizar
-        if not self.request.user.is_staff and serializer.instance.owner != self.request.user:
+        if not (self.request.user.is_staff or serializer.instance.owner == self.request.user):
             raise PermissionDenied("No puedes actualizar productos de otros usuarios.")
         serializer.save()
 
