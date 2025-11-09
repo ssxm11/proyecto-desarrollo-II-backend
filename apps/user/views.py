@@ -2,7 +2,6 @@ from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializer import RegisterSerializer, UserSerializer
 from .models import User
@@ -33,23 +32,6 @@ class RegisterView(generics.CreateAPIView):
         response.data["access"] = str(refresh.access_token)
         return response
 
-
-# Token con campos extra
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token["role"] = user.role
-        token["email"] = user.email
-        return token
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-    permission_classes = [AllowAny]
-
-
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -62,3 +44,51 @@ class MeView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
+    def delete(self, request):
+        # elimina la cuenta del usuario autenticado
+        user = request.user
+        user.delete()
+        return Response(
+            {'detail': 'Cuenta eliminada correctamente.'},
+            status=204
+        )
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not username or not password:
+            return Response(
+                {'detail': 'Usuario y contraseña son obligatorios.'},
+                status=400
+            )
+        
+        user = User.objects.filter(username=username).first()
+        if not user or not user.check_password(password):
+            return Response(
+                {'detail': 'Credenciales inválidas.'},
+                status=401
+            )
+        
+        if not user.is_active:
+            return Response(
+                {'detail': 'Usuario inactivo. Contacta al administrador.'},
+                status=403
+            )
+        
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'role': user.role,
+                'is_staff': user.is_staff
+            }
+        }, status=200)

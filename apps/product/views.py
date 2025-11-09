@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, filters
 from .models import Product
 from .serializer import ProductSerializer
+from rest_framework.exceptions import PermissionDenied
 
 class ProductViewSet(viewsets.ModelViewSet):
     """
@@ -25,8 +26,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        # asigna automáticamente el usuario autenticado como creador
+        # solo staff puede crear productos
+        if not self.request.user.is_staff:
+            raise PermissionDenied("Solo administradores pueden crear productos.")
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer):
+        # solo staff o creador pueden actualizar
+        if not self.request.user.is_staff and serializer.instance.owner != self.request.user:
+            raise PermissionDenied("No puedes actualizar productos de otros usuarios.")
+        serializer.save()
 
     def perform_destroy(self, instance):
         # solo el creador puede eliminar el producto
