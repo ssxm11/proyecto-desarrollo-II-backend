@@ -65,6 +65,6 @@ class User(AbstractUser):
         self.first_name = self.first_name.upper()
         self.last_name = self.last_name.upper()
         self.email = self.email.lower()
-        if self.pk is None or not self.password.startswith('pbkdf2_'):
+        if self.password and not self.password.startswith('pbkdf2_'):
             self.set_password(self.password)
         super().save(*args, **kwargs)
