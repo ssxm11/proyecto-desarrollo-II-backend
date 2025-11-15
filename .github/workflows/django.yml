@@ -12,7 +12,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:13
+        image: postgres:15  # Actualizado de 13 a 15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -71,8 +71,7 @@ jobs:
     
     - name: Ejecutar pruebas con cobertura
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        DJANGO_SETTINGS_MODULE: config.settings
+        DJANGO_SETTINGS_MODULE: l_atelier.settings
       run: |
         # Ejecutar pruebas con coverage en la carpeta apps
         python -m coverage run --source='apps' manage.py test apps --keepdb
