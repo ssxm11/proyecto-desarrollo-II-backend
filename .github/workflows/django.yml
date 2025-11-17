@@ -132,30 +132,42 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Instalar herramientas de linting
-        run: |
-          pip install flake8 black isort autopep8
+      - name: Instalar herramientas
+        run: pip install autopep8 black isort flake8
 
-      - name: Ejecutar Black (formato)
-        run: |
-          black --check --diff . || echo "⚠️ Archivos sin formatear detectados"
+      - name: Verificar formato con Black
         continue-on-error: true
-
-      - name: Ejecutar isort (imports)
         run: |
-          isort --check-only --diff . || echo "⚠️ Imports desordenados detectados"
+          echo "Archivos que necesitan formato:"
+          black --check --diff . || true
+
+      - name: Verificar imports con isort
         continue-on-error: true
-
-      - name: Ejecutar Flake8 (linting)
         run: |
+          echo "Imports que necesitan ordenarse:"
+          isort --check-only --diff . || true
+
+      - name: Linting con Flake8
+        continue-on-error: true
+        run: |
+          echo "Problemas de linting:"
           flake8 . \
             --max-line-length=120 \
-            --exclude=migrations,venv,__pycache__,.git,htmlcov \
-            --extend-ignore=E203,W503,E501 \
+            --exclude=migrations,venv \
+            --extend-ignore=E203,W503 \
             --count \
-            --statistics \
-            --show-source
-        continue-on-error: true
+            --statistics || true
+
+      - name: Resumen de comandos para arreglar
+        if: failure()
+        run: |
+          echo "Hay problemas de linting."
+          echo ""
+          echo "Para arreglarlos localmente, ejecuta:"
+          echo "  pip install autopep8 black isort"
+          echo "  autopep8 --in-place --aggressive --aggressive --recursive --exclude='*/migrations/*' ."
+          echo "  black ."
+          echo "  isort ."
 
   build:
     name: Build y Deploy
