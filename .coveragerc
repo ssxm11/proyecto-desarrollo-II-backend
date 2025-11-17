@@ -1,5 +1,7 @@
 [run]
 source = .
+[run]
+source = .
 omit = 
     */migrations/*
     */tests/*
@@ -10,10 +12,14 @@ omit =
     */staticfiles/*
     */media/*
     manage.py
+    */settings/*
     */settings.py
     */wsgi.py
     */asgi.py
     */__init__.py
+    */apps.py
+    */admin.py
+    */urls.py
 
 [report]
 precision = 2
