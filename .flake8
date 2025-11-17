@@ -1,0 +1,34 @@
+[flake8]
+max-line-length = 120
+exclude = 
+    .git,
+    __pycache__,
+    */migrations/*,
+    */venv/*,
+    */env/*,
+    */staticfiles/*,
+    */media/*,
+    htmlcov,
+    .pytest_cache,
+    .coverage
+
+# Ignorar errores comunes de Django
+extend-ignore = 
+    E203,  # whitespace before ':'
+    E501,  # line too long (manejado por black)
+    W503,  # line break before binary operator
+    W291,  # trailing whitespace (arreglado por autopep8)
+    W292,  # no newline at end of file (arreglado por autopep8)
+    W293,  # blank line contains whitespace (arreglado por autopep8)
+
+# Configuración de complejidad
+max-complexity = 10
+
+# Permitir imports sin usar en __init__.py
+per-file-ignores =
+    __init__.py:F401
+    **/tests/*.py:F401
+
+count = True
+statistics = True
+show-source = True
