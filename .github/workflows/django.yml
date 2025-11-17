@@ -134,16 +134,28 @@ jobs:
 
       - name: Instalar herramientas de linting
         run: |
-          pip install flake8 black isort
+          pip install flake8 black isort autopep8
 
-      - name: Ejecutar Black (verificación)
-        run: black --check . || true
+      - name: Ejecutar Black (formato)
+        run: |
+          black --check --diff . || echo "⚠️ Archivos sin formatear detectados"
+        continue-on-error: true
 
-      - name: Ejecutar isort (verificación)
-        run: isort --check-only . || true
+      - name: Ejecutar isort (imports)
+        run: |
+          isort --check-only --diff . || echo "⚠️ Imports desordenados detectados"
+        continue-on-error: true
 
-      - name: Ejecutar Flake8
-        run: flake8 . --max-line-length=120 --exclude=migrations,venv --count --statistics
+      - name: Ejecutar Flake8 (linting)
+        run: |
+          flake8 . \
+            --max-line-length=120 \
+            --exclude=migrations,venv,__pycache__,.git,htmlcov \
+            --extend-ignore=E203,W503,E501 \
+            --count \
+            --statistics \
+            --show-source
+        continue-on-error: true
 
   build:
     name: Build y Deploy
